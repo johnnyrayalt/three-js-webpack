@@ -1,16 +1,18 @@
 import * as THREE from 'three'
- // Scene + Camera + Renderer
+const OrbitControlsLibrary = require('three-orbit-controls')
+const OrbitControls = OrbitControlsLibrary(THREE)
+
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 )
-const renderer = new THREE.WebGLRenderer({ antialias: true})
+const camera = new THREE.PerspectiveCamera(
+ 75, // size
+ window.innerWidth / window.innerHeight, //aspect ratio
+ 0.1, // near clipping plane
+ 1000 ) //far clipping plane
 
+const renderer = new THREE.WebGLRenderer()
 renderer.setSize( window.innerWidth, window.innerHeight )
-// sets renderer background color
-renderer.setClearColor("#222222")
 document.body.appendChild( renderer.domElement )
-camera.position.z = 5
 
-// resize canvas on resize window
 window.addEventListener( 'resize', () => {
 	let width = window.innerWidth
 	let height = window.innerHeight
@@ -19,22 +21,40 @@ window.addEventListener( 'resize', () => {
 	camera.updateProjectionMatrix()
 })
 
-// basic cube
-let geometry = new THREE.BoxGeometry( 1, 1, 1)
-let material = new THREE.MeshStandardMaterial( { color: 0xff0051, flatShading: true, metalness: 0, roughness: 1 })
-const cube = new THREE.Mesh ( geometry, material )
+// controls
+const controls = new OrbitControls( camera, renderer.domElement )
+
+// create the shape
+const geometry = new THREE.BoxGeometry( 1, 1, 1 )
+const texture = new THREE.TextureLoader().load('/3cbe185bb4dfc233fb4d7976f703dd49.png')
+
+const material = new THREE.MeshBasicMaterial({
+	color: 0xffffff,
+	map: texture
+})
+const cube = new THREE.Mesh( geometry, material )
 scene.add( cube )
 
-// ambient light
-const ambientLight = new THREE.AmbientLight ( 0xffffff, 0.2)
-scene.add( ambientLight )
+camera.position.z = 3
+controls.update()
 
-// point light
-const pointLight = new THREE.PointLight( 0xffffff, 1 );
-pointLight.position.set( 25, 50, 25 );
-scene.add( pointLight );
 
-function render() {
+let update = () => {
+	cube.rotation.x += 0.01,
+	cube.rotation.y += 0.05
+}
+
+// draw scene
+const render = () => {
 	renderer.render( scene, camera )
 }
-render()
+
+// run game loop {update, render, repeat}
+const GameLoop = () => {
+	requestAnimationFrame( GameLoop )
+
+	update()
+	render()
+}
+
+GameLoop()
